@@ -15,12 +15,14 @@ class ConfigField {
   final String label;
   final String type;
   final bool isRequired;
+  final dynamic value;
 
   ConfigField({
     required this.key,
     required this.label,
     required this.type,
     this.isRequired = false,
+    this.value,
   });
 
   factory ConfigField.fromJson(Map<String, dynamic> json) {
@@ -29,7 +31,7 @@ class ConfigField {
       label: json['label'] ?? 'Campo sin etiqueta',
       type: json['type'] ?? 'string',
       isRequired: json['required'] ?? false,
-      //prevValue: json['prevValue'] ?? '',
+      value: json['value'],
     );
   }
 }
@@ -213,6 +215,7 @@ class _DeviceConfigPageState extends State<DeviceConfigPage> {
   List<ConfigField> _configFields = [];
   final Map<String, TextEditingController> _textControllers = {};
   final Map<String, bool> _boolValues = {};
+  final Map<String, bool> _passwordVisible = {};
 
   @override
   void initState() {
@@ -282,11 +285,15 @@ class _DeviceConfigPageState extends State<DeviceConfigPage> {
         _configFields = schemaList.map((json) => ConfigField.fromJson(json)).toList();
         _textControllers.clear();
         _boolValues.clear();
+        _passwordVisible.clear();
         for (var field in _configFields) {
           if (['string', 'password', 'int'].contains(field.type)) {
-            _textControllers[field.key] = TextEditingController();
+            _textControllers[field.key] = TextEditingController(text: field.value?.toString() ?? '');
+            if (field.type == 'password') {
+              _passwordVisible[field.key] = false;
+            }
           } else if (field.type == 'bool') {
-            _boolValues[field.key] = false;
+            _boolValues[field.key] = field.value is bool ? field.value : false;
           }
         }
       });
@@ -441,10 +448,20 @@ class _DeviceConfigPageState extends State<DeviceConfigPage> {
       case 'password':
         formField = TextField(
           controller: _textControllers[field.key],
-          obscureText: true,
+          obscureText: !(_passwordVisible[field.key] ?? false),
           decoration: InputDecoration(
             labelText: field.label + (field.isRequired ? ' *' : ''),
             border: const OutlineInputBorder(),
+            suffixIcon: IconButton(
+              icon: Icon(
+                (_passwordVisible[field.key] ?? false) ? Icons.visibility : Icons.visibility_off,
+              ),
+              onPressed: () {
+                setState(() {
+                  _passwordVisible[field.key] = !(_passwordVisible[field.key] ?? false);
+                });
+              },
+            ),
           ),
         );
         break;

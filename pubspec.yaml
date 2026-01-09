@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_blue_plus: ^2.31.10 # Añade esta línea
+  flutter_blue_plus: ^1.36.8
   permission_handler: ^11.3.1 
   shared_preferences: ^2.2.3 
 
